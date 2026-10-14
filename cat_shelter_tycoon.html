@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уютное Кошачье Убежище - Idle Tycoon</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-short': 'bounceShort 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-6px)' },
+                        },
+                        bounceShort: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.08)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fef3c7 50%, #eff6ff 100%);
+            min-height: 100%;
+        }
+        .font-display {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-700 overflow-x-hidden selection:bg-pink-200 selection:text-pink-900">
+
+    <!-- Top Header & Stats Bar -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-50 px-4 py-3 shadow-sm">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Game Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-gradient-to-tr from-pink-400 to-amber-300 rounded-2xl flex items-center justify-center shadow-md text-white text-2xl font-display animate-float">
+                    🐱
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-xl bg-gradient-to-r from-pink-600 to-amber-600 bg-clip-text text-transparent">Уютное Кошачье Убежище</h1>
+                    <p class="text-xs text-slate-500">Мурлыкающий Idle Tycoon</p>
+                </div>
+            </div>
+
+            <!-- Stats Dashboard -->
+            <div class="flex items-center gap-3 md:gap-6 flex-wrap">
+                <!-- Coins Display -->
+                <div class="bg-amber-50 border border-amber-200/60 rounded-2xl px-4 py-2 flex items-center gap-2.5 shadow-inner">
+                    <span class="text-2xl animate-pulse">🪙</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider font-semibold text-amber-700/80">Монеты</div>
+                        <div id="coin-counter" class="font-display font-bold text-lg text-amber-800">1</div>
+                    </div>
+                </div>
+
+                <!-- Income Rate -->
+                <div class="bg-pink-50 border border-pink-200/60 rounded-2xl px-4 py-2 flex items-center gap-2.5 shadow-inner">
+                    <span class="text-2xl">✨</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider font-semibold text-pink-700/80">Доход в сек</div>
+                        <div id="cps-counter" class="font-display font-bold text-lg text-pink-800">+0 / сек</div>
+                    </div>
+                </div>
+
+                <!-- Cat Count -->
+                <div class="bg-violet-50 border border-violet-200/60 rounded-2xl px-4 py-2 flex items-center gap-2.5 shadow-inner">
+                    <span class="text-2xl">🐾</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider font-semibold text-violet-700/80">Котики</div>
+                        <div id="cat-count-display" class="font-display font-bold text-lg text-violet-800">0 / 6</div>
+                    </div>
+                </div>
+
+                <!-- Sound Toggle Button -->
+                <button id="sound-toggle" onclick="toggleSound()" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition shadow-sm" title="Звук">
+                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <!-- Left 2 Columns: Cat Beds / Windows Grid -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <!-- Shelter Room Banner -->
+            <div class="bg-gradient-to-r from-pink-500 via-rose-400 to-amber-400 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[160px]">
+                <div class="absolute -right-6 -bottom-6 text-9xl opacity-20 select-none pointer-events-none">🐾</div>
+                <div class="relative z-10">
+                    <span class="bg-white/20 backdrop-blur-md text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Уютная комната №1</span>
+                    <h2 class="font-display font-bold text-2xl md:text-3xl mt-2">Дом пушистых лапок</h2>
+                    <p class="text-white/90 text-sm mt-1 max-w-md">Покупайте лежанки и окошки, заселяйте милых котиков и собирайте монетки от их счастливого мурчания!</p>
+                </div>
+                <div class="mt-4 flex items-center gap-3 relative z-10">
+                    <button onclick="petAllCats()" class="bg-white text-pink-600 hover:bg-pink-50 font-semibold px-4 py-2 rounded-xl text-sm shadow-md transition flex items-center gap-2 active:scale-95">
+                        <span>💖 Погладить всех</span>
+                    </button>
+                    <span id="shelter-status-text" class="text-xs text-white/80 font-medium">Котики спят и мурчат...</span>
+                </div>
+            </div>
+
+            <!-- Beds & Windows Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-display font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <span>🪟</span> Лежанки и окошки
+                    </h3>
+                    <span id="beds-unlocked-count" class="text-xs font-semibold text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">Открыто: 2 / 6</span>
+                </div>
+
+                <div id="beds-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Beds inserted via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Shop & Upgrades & Info Panel -->
+        <div class="flex flex-col gap-6">
+            
+            <!-- Buy Cat / Action Card -->
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-pink-100 relative overflow-hidden flex flex-col gap-4">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-pink-100/50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                
+                <div class="flex items-center justify-between">
+                    <h3 class="font-display font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <span>🐈</span> Приют котенка
+                    </h3>
+                    <span id="next-cat-badge" class="bg-pink-100 text-pink-700 text-xs font-bold px-2.5 py-1 rounded-full">10-й особый! ✨</span>
+                </div>
+
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Купить нового котика:</span>
+                        <span id="next-cat-name" class="font-semibold text-slate-700">Мурка #1</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 font-display font-bold text-xl text-amber-600">
+                            <span>🪙</span> <span id="next-cat-cost">1</span>
+                        </div>
+                        <span id="cat-bonus-hint" class="text-xs text-pink-600 font-medium bg-pink-50 px-2 py-1 rounded-lg">Базовый доход: 1 монета/сек</span>
+                    </div>
+                </div>
+
+                <!-- Buy Button -->
+                <button id="buy-cat-btn" onclick="buyCat()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-display font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-pink-500/25 transition transform active:scale-98 flex items-center justify-center gap-2">
+                    <span>🐾 Приютить котика</span>
+                </button>
+
+                <!-- Rule Hint Box -->
+                <div class="bg-amber-50/70 border border-amber-200/50 rounded-2xl p-3 text-xs text-amber-900 leading-relaxed">
+                    <div class="font-bold flex items-center gap-1 mb-1 text-amber-800">
+                        <span>💡</span> Правила приюта:
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-amber-800/90">
+                        <li>1-й котик стоит 1 монету, далее цены растут (100, 200, 400...).</li>
+                        <li>Каждый 10-й котик стоит в 5 раз дороже, но дает <strong>в 2 раза больше</strong> дохода и его прокачка стоит в 2 раза дороже!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quick Stats & Info Card -->
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-pink-100 flex flex-col gap-3">
+                <h3 class="font-display font-bold text-md text-slate-800 flex items-center gap-2">
+                    <span>📊</span> Статистика приюта
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500">Всего заработано:</span>
+                        <span id="stat-total-earned" class="font-semibold text-slate-700">1 монета</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500">Всего поглаживаний:</span>
+                        <span id="stat-pets" class="font-semibold text-slate-700">0</span>
+                    </div>
+                    <div class="flex justify-between py-1.5">
+                        <span class="text-slate-500">Свободных лежанок:</span>
+                        <span id="stat-free-beds" class="font-semibold text-slate-700">6</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Custom Notification Modal / Toast -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // --- SOUND SYSTEM (Web Audio API) ---
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playMeowSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const now = audioCtx.currentTime;
+                
+                osc.type = 'sine';
+                // Cute cat meow pitch bend
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(750, now + 0.15);
+                osc.frequency.exponentialRampToValueAtTime(350, now + 0.4);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function playCoinSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const now = audioCtx.currentTime;
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(987.77, now); // B5
+                osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function playUpgradeSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const now = audioCtx.currentTime;
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.2); // C6
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            if (soundEnabled) {
+                btn.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i>';
+                showToast("🔊 Звук включен", "success");
+            } else {
+                btn.innerHTML = '<i data-lucide="volume-x" class="w-5 h-5"></i>';
+                showToast("🔇 Звук выключен", "info");
+            }
+            lucide.createIcons();
+        }
+
+        // --- GAME STATE ---
+        let game = {
+            coins: 1,
+            totalEarned: 1,
+            totalPets: 0,
+            cats: [], // Array of cat objects placed in beds
+            bedsCount: 6, // Total available bed slots in the shelter
+        };
+
+        // Cat data assets (emojis, names, descriptions)
+        const catArchetypes = [
+            { name: "Барсик", emoji: "🐱", desc: "Рыжий соня" },
+            { name: "Мурка", emoji: "😺", desc: "Ласковая кошечка" },
+            { name: "Пушистик", emoji: "😸", desc: "Любит окошки" },
+            { name: "Снежок", emoji: "😻", desc: "Белый ангелочек" },
+            { name: "Уголек", emoji: "😼", desc: "Загадочный взгляд" },
+            { name: "Рыжик", emoji: "😽", desc: "Мурчит громче всех" },
+            { name: "Бусинка", emoji: "🐈", desc: "Грациозная леди" },
+            { name: "Кекс", emoji: "🐾", desc: "Сладкий булочкин" },
+            { name: "Томас", emoji: "🦁", desc: "Маленький лев" },
+            { name: "Особый Звездный Кот", emoji: "🌟", desc: "Легендарный мурлыка!" }
+        ];
+
+        // --- GAME CALCULATIONS & RULES ---
+        
+        // Cost progression for buying cats:
+        // User specifies: 1st cat costs 1 coin, then 100, 200, 400, 600...
+        // And every 10th cat costs 5x normal progression price.
+        function getCatCost(catIndex) {
+            // catIndex is 0-based (0 for 1st cat, 1 for 2nd, etc.)
+            let basePrice;
+            if (catIndex === 0) {
+                basePrice = 1;
+            } else {
+                // 1st cat = 1, 2nd = 100, 3rd = 200, 4th = 400, 5th = 600, etc. (+200 per cat after 2nd, or standard progression)
+                // Let's match user's explicit sequence: 1 -> 100 -> 200 -> 400 -> 600 -> 800 -> 1000 ...
+                if (catIndex === 1) basePrice = 100;
+                else basePrice = 100 + (catIndex - 1) * 200;
+            }
+
+            // Every 10th cat (catIndex 9, 19, 29...) costs 5x normal price!
+            const isMilestone = (catIndex + 1) % 10 === 0;
+            if (isMilestone) {
+                basePrice *= 5;
+            }
+
+            return basePrice;
+        }
+
+        function getNextCatCost() {
+            return getCatCost(game.cats.length);
+        }
+
+        // Income generation rule:
+        // User specified: "эти кошки секунду будут приносить Например на 1 уровне одну монету секунду потом 2 потом 4 потом 6 итак по увеличивающийся"
+        // And every 10th cat gives 2x more income and costs 2x more to upgrade.
+        function getCatBaseIncome(catIndex, catLevel = 1) {
+            // Base level income sequence or multiplier: Level 1 = 1 coin/sec, Level 2 = 2, Level 3 = 4, Level 4 = 6, Level 5 = 8...
+            let incomeAtLevel1;
+            if (catLevel === 1) incomeAtLevel1 = 1;
+            else if (catLevel === 2) incomeAtLevel1 = 2;
+            else incomeAtLevel1 = 2 + (catLevel - 2) * 2; // 1, 2, 4, 6, 8, 10...
+
+            // Every 10th cat yields 2x more income
+            const isMilestone = (catIndex + 1) % 10 === 0;
+            if (isMilestone) {
+                incomeAtLevel1 *= 2;
+            }
+
+            return incomeAtLevel1;
+        }
+
+        // Upgrade cost rule:
+        // Upgrades increase cat level. Cost of upgrade scales and doubles for every 10th cat.
+        function getCatUpgradeCost(catIndex, currentLevel) {
+            let baseUpgradeCost = 50 * Math.pow(1.8, currentLevel - 1);
+            
+            // Every 10th cat costs 2x more to upgrade
+            const isMilestone = (catIndex + 1) % 10 === 0;
+            if (isMilestone) {
+                baseUpgradeCost *= 2;
+            }
+
+            return Math.floor(baseUpgradeCost);
+        }
+
+        // Total coins per second
+        function getTotalCPS() {
+            let total = 0;
+            game.cats.forEach((cat, idx) => {
+                total += getCatBaseIncome(idx, cat.level);
+            });
+            return total;
+        }
+
+        // --- CORE ACTIONS ---
+
+        function buyCat() {
+            const cost = getNextCatCost();
+            if (game.coins < cost) {
+                showToast("Недостаточно монет! 🪙", "error");
+                return;
+            }
+            if (game.cats.length >= game.bedsCount) {
+                showToast("Все лежанки заняты! Купите расширение или дождитесь места.", "error");
+                return;
+            }
+
+            game.coins -= cost;
+            const catIndex = game.cats.length;
+            const archetype = catArchetypes[catIndex % catArchetypes.length];
+
+            game.cats.push({
+                id: Date.now() + Math.random(),
+                name: `${archetype.name} #${catIndex + 1}`,
+                emoji: archetype.emoji,
+                desc: archetype.desc,
+                level: 1,
+                pets: 0
+            });
+
+            playMeowSound();
+            showToast(`🎉 Вы приютили нового котика: ${archetype.name}!`, "success");
+            updateUI();
+            saveGame();
+        }
+
+        function upgradeCat(catIndex) {
+            if (!game.cats[catIndex]) return;
+            const cat = game.cats[catIndex];
+            const cost = getCatUpgradeCost(catIndex, cat.level);
+
+            if (game.coins < cost) {
+                showToast("Не хватает монет на прокачку! 🪙", "error");
+                return;
+            }
+
+            game.coins -= cost;
+            cat.level++;
+            playUpgradeSound();
+            showToast(`⭐ ${cat.name} повышен до уровня ${cat.level}!`, "success");
+            updateUI();
+            saveGame();
+        }
+
+        function petCat(catIndex, event) {
+            if (!game.cats[catIndex]) return;
+            const cat = game.cats[catIndex];
+            cat.pets++;
+            game.totalPets++;
+
+            // Give bonus manual click coins (e.g. current income or 1 coin)
+            const bonus = Math.max(1, Math.floor(getCatBaseIncome(catIndex, cat.level) / 2));
+            game.coins += bonus;
+            game.totalEarned += bonus;
+
+            playCoinSound();
+            showFloatingText(event, `+${bonus} 🪙`, "text-amber-500");
+            updateUI();
+        }
+
+        function petAllCats() {
+            if (game.cats.length === 0) {
+                showToast("У вас пока нет котиков для поглаживания! 😿", "info");
+                return;
+            }
+            let totalBonus = 0;
+            game.cats.forEach((cat, idx) => {
+                cat.pets++;
+                totalBonus += Math.max(1, Math.floor(getCatBaseIncome(idx, cat.level) / 2));
+            });
+            game.totalPets += game.cats.length;
+            game.coins += totalBonus;
+            game.totalEarned += totalBonus;
+
+            playCoinSound();
+            showToast(`💖 Вы погладили всех котиков! Получено +${totalBonus} монет!`, "success");
+            updateUI();
+        }
+
+        function showFloatingText(event, text, colorClass) {
+            const el = document.createElement('div');
+            el.className = `fixed z-50 font-display font-bold text-lg pointer-events-none transition-all duration-700 transform -translate-y-4 ${colorClass}`;
+            el.style.left = `${event.clientX}px`;
+            el.style.top = `${event.clientY}px`;
+            el.innerText = text;
+            document.body.appendChild(el);
+
+            setTimeout(() => {
+                el.style.transform = 'translateY(-50px) scale(1.2)';
+                el.style.opacity = '0';
+            }, 50);
+
+            setTimeout(() => {
+                el.remove();
+            }, 800);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-white border-pink-200 text-slate-800';
+            if (type === 'success') bgClass = 'bg-emerald-500 border-emerald-600 text-white';
+            if (type === 'error') bgClass = 'bg-rose-500 border-rose-600 text-white';
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border font-medium text-sm flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- GAME LOOP (Income per second) ---
+        let lastTick = Date.now();
+
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - lastTick) / 1000; // seconds elapsed
+            
+            if (delta >= 1) {
+                const cps = getTotalCPS();
+                if (cps > 0) {
+                    game.coins += cps * delta;
+                    game.totalEarned += cps * delta;
+                }
+                lastTick = now;
+                updateUI();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- UI RENDERING ---
+        function updateUI() {
+            // Counters
+            document.getElementById('coin-counter').innerText = Math.floor(game.coins).toLocaleString('ru-RU');
+            const cps = getTotalCPS();
+            document.getElementById('cps-counter').innerText = `+${cps} / сек`;
+            document.getElementById('cat-count-display').innerText = `${game.cats.length} / ${game.bedsCount}`;
+            document.getElementById('beds-unlocked-count').innerText = `Занято: ${game.cats.length} / ${game.bedsCount}`;
+
+            // Next cat shop info
+            const nextCost = getNextCatCost();
+            const nextIndex = game.cats.length;
+            const isMilestone = (nextIndex + 1) % 10 === 0;
+
+            document.getElementById('next-cat-cost').innerText = nextCost.toLocaleString('ru-RU');
+            document.getElementById('next-cat-name').innerText = `Котик #${nextIndex + 1}`;
+            
+            const badge = document.getElementById('next-cat-badge');
+            const hint = document.getElementById('cat-bonus-hint');
+            if (isMilestone) {
+                badge.classList.remove('hidden');
+                badge.innerText = `🌟 Особый 10-й (x2 доход)!`;
+                hint.innerText = `Доход ур.1: ${getCatBaseIncome(nextIndex, 1)} монеты/сек (x2!)`;
+            } else {
+                badge.classList.add('hidden');
+                hint.innerText = `Доход ур.1: ${getCatBaseIncome(nextIndex, 1)} монета/сек`;
+            }
+
+            // Quick Stats
+            document.getElementById('stat-total-earned').innerText = `${Math.floor(game.totalEarned).toLocaleString('ru-RU')} монет`;
+            document.getElementById('stat-pets').innerText = game.totalPets.toLocaleString('ru-RU');
+            document.getElementById('stat-free-beds').innerText = (game.bedsCount - game.cats.length);
+
+            // Render Beds & Windows
+            renderBedsGrid();
+        }
+
+        function renderBedsGrid() {
+            const grid = document.getElementById('beds-grid');
+            let html = '';
+
+            for (let i = 0; i < game.bedsCount; i++) {
+                const cat = game.cats[i];
+                if (cat) {
+                    // Occupied Bed
+                    const currentIncome = getCatBaseIncome(i, cat.level);
+                    const upgradeCost = getCatUpgradeCost(i, cat.level);
+                    const isMilestone = (i + 1) % 10 === 0;
+
+                    html += `
+                        <div class="bg-white rounded-3xl p-5 shadow-md border ${isMilestone ? 'border-amber-300 bg-gradient-to-br from-amber-50/50 to-white' : 'border-pink-100'} flex flex-col justify-between gap-4 relative overflow-hidden group">
+                            <div class="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full ${isMilestone ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-slate-100 text-slate-600'}">
+                                Место #${i + 1} ${isMilestone ? '🌟' : ''}
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <div onclick="petCat(${i}, event)" class="w-16 h-16 bg-pink-100/70 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer hover:scale-105 transition transform active:scale-95 animate-float" title="Нажмите, чтобы погладить!">
+                                    ${cat.emoji}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-display font-bold text-base text-slate-800 truncate">${cat.name}</h4>
+                                    <p class="text-xs text-slate-500">${cat.desc}</p>
+                                    <div class="flex items-center gap-3 mt-1.5 text-xs font-medium text-pink-600">
+                                        <span>Уровени: ${cat.level}</span>
+                                        <span>•</span>
+                                        <span class="text-amber-600 font-semibold">+${currentIncome} монеты/сек</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+                                <span class="text-xs text-slate-400">Ласк: ${cat.pets}</span>
+                                <button onclick="upgradeCat(${i})" class="bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 border border-pink-200/60 active:scale-95">
+                                    <span>⭐ Улучшить</span>
+                                    <span class="font-bold text-amber-600">(${upgradeCost} 🪙)</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Empty Bed / Window
+                    html += `
+                        <div class="bg-white/50 border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center gap-3 min-h-[170px] hover:border-pink-300 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl text-slate-400">
+                                🪟
+                            </div>
+                            <div>
+                                <h4 class="font-display font-semibold text-slate-600 text-sm">Лежанка №${i + 1} свободна</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Купите котика в приюте справа</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // --- SAVE / LOAD SYSTEM ---
+        function saveGame() {
+            localStorage.setItem('cat_shelter_save_v1', JSON.stringify(game));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('cat_shelter_save_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    game = { ...game, ...parsed };
+                } catch (e) {
+                    console.error("Failed to load save", e);
+                }
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            loadGame();
+            lucide.createIcons();
+            updateUI();
+            requestAnimationFrame(gameLoop);
+            
+            // Auto save every 10 seconds
+            setInterval(saveGame, 10000);
+        };
+    </script>
+</body>
+</html>
